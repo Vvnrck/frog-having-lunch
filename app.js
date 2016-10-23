@@ -1,3 +1,9 @@
+initApp()
+initWaves()
+initSphere()
+render()
+
+
 function initApp() {
     window.app = window.app || {
         scene: new THREE.Scene(),
@@ -17,16 +23,8 @@ function initApp() {
 }
 
 
-function initObjects() {
+function initWaves() {
     window.app = window.app || initApp()
-
-    // Create CUBE
-    window.app.objects.cube = new THREE.Mesh(
-        new THREE.BoxGeometry(1, 1, 1),
-        new THREE.MeshNormalMaterial()
-    )
-    // app.scene.add(app.objects.cube)
-
 
     // Create WAVES
     var waves = {
@@ -74,14 +72,32 @@ function initObjects() {
     app.objects.waves = waves
 }
 
+function initSphere() {
+    window.app = window.app || initApp()
+
+    var geometry = new THREE.IcosahedronGeometry(1, 1);
+    var material = new THREE.MeshBasicMaterial({
+        color: 0x00ff00,
+        wireframe: true
+    });
+    var sphere = new THREE.Mesh(geometry, material);
+    sphere.position.add(new THREE.Vector3(0, 5, 5))
+
+    window.app.scene.add(sphere);
+    window.app.objects.sphere = {
+        geometry: geometry,
+        mesh: sphere
+    }
+}
+
 
 function render() {
     var objs = app.objects
 
     requestAnimationFrame(render)
 
-    objs.cube.rotation.x += 0.01
-    objs.cube.rotation.y += 0.01
+    objs.sphere.mesh.rotation.x += 0.01
+    objs.sphere.mesh.rotation.y += 0.01
 
     for (var x = 1; x < objs.waves.xVerticeNum; x++) {
         for (var y = 1; y < objs.waves.yVerticeNum; y++) {
@@ -102,6 +118,3 @@ function render() {
     app.frame++;
     app.renderer.render(app.scene, app.camera)
 }
-initApp()
-initObjects()
-render()
