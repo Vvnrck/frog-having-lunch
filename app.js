@@ -30,9 +30,9 @@ function initObjects() {
 
     // Create WAVES
     var waves = {
-        xVerticeNum: 20,
-        yVerticeNum: 20,
-        verticeOffset: 1,
+        xVerticeNum: 30,
+        yVerticeNum: 30,
+        verticeOffset: 1.5,
         vertices: [] 
     }
     for (var x = 0; x < waves.xVerticeNum; x++) {
@@ -86,7 +86,13 @@ function render() {
     for (var x = 1; x < objs.waves.xVerticeNum; x++) {
         for (var y = 1; y < objs.waves.yVerticeNum; y++) {
             var geom = objs.waves.vertices[x][y].plane.geometry;
-            geom.vertices[1].z = 0.5 * Math.sin(app.frame / 60.0)
+
+            for (var i = 0; i < 5; i++) {
+                geom.vertices[i].z = 
+                    0.5 * Math.sin(geom.vertices[i].x + app.frame / 60.0) 
+                    + 0.5 * Math.sin(geom.vertices[i].y + app.frame / 60.0)
+            }
+            
             geom.verticesNeedUpdate = true
             geom.computeFaceNormals()
             geom.computeVertexNormals()
