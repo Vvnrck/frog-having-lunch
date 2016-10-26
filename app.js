@@ -27,13 +27,14 @@ function initFrog() {
 	window.app = window.app || initApp()
 	
 	var loader = new THREE.JSONLoader();
-	loader.load( 'Kermit.json', function ( geometry ) {
-	var mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial() );
+	loader.load( 'Frog.json', function ( geometry, materials ) {
+	var mesh = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial( materials ) );
 
 		mesh.position.x =0;
 		mesh.position.y =5;
 		mesh.position.z =5;
-	mesh.scale.set(.2, .2, .2)
+		mesh.rotateY(-90);
+	//mesh.scale.set(.2, .2, .2)
 	window.app.scene.add( mesh );
 	
 	console.log("hui");
