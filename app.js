@@ -1,6 +1,6 @@
 initApp()
 initWaves()
-initSphere()
+// initSphere()
 render()
 
 
@@ -57,9 +57,11 @@ function initWaves() {
                 )
                 rectShape.faces.push(new THREE.Face3(0, 1, 2))
                 rectShape.faces.push(new THREE.Face3(2, 3, 4))
-                rectShape.computeFaceNormals();
+                // rectShape.computeFaceNormals();
 
-                var material = new THREE.MeshNormalMaterial();
+                var material = new THREE.MeshPhongMaterial({
+                    color: 0x2194ce
+                })
                 var polygon = new THREE.Mesh(rectShape, material)
                 waves.vertices[x][y].plane = {
                     geometry: rectShape,
@@ -96,9 +98,6 @@ function render() {
 
     requestAnimationFrame(render)
 
-    objs.sphere.mesh.rotation.x += 0.01
-    objs.sphere.mesh.rotation.y += 0.01
-
     for (var x = 1; x < objs.waves.xVerticeNum; x++) {
         for (var y = 1; y < objs.waves.yVerticeNum; y++) {
             var geom = objs.waves.vertices[x][y].plane.geometry;
@@ -110,8 +109,8 @@ function render() {
             }
             
             geom.verticesNeedUpdate = true
-            geom.computeFaceNormals()
-            geom.computeVertexNormals()
+            // geom.computeFaceNormals()
+            // geom.computeVertexNormals()
         }
     }
 
