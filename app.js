@@ -20,27 +20,48 @@ function initApp() {
     document.body.appendChild(app.renderer.domElement)
     app.camera.position.z = 23
     app.camera.lookAt(new THREE.Vector3( 0, 6, 0 ))
+	
+	var light = new THREE.AmbientLight( 0x404040, 3 ); // soft white light
+    window.app.scene.add( light );
+	
     return window.app
 }
 
 function initFrog() {
 	window.app = window.app || initApp()
 	
-	var loader = new THREE.JSONLoader();
-	loader.load( 'Frog.json', function ( geometry, materials ) {
-        var gpu_geom = new THREE.BufferGeometry().fromGeometry(geometry)
-        gpu_geom.computeBoundingBox()
-        gpu_geom.normalizeNormals ()
-	    var mesh = new THREE.Mesh( gpu_geom, new THREE.MeshFaceMaterial( materials ) );
+	//var loader = new THREE.JSONLoader();
+	//loader.load( 'Frog.json', function ( geometry, materials ) {
+    //    var gpu_geom = new THREE.BufferGeometry().fromGeometry(geometry)
+    //    gpu_geom.computeBoundingBox()
+    //    gpu_geom.normalizeNormals ()
+	//    var mesh = new THREE.Mesh( gpu_geom, new THREE.MeshFaceMaterial( materials ) );
 
-		mesh.position.x =0;
-		mesh.position.y =5;
-		mesh.position.z =5;
-		mesh.rotateY(-90);
-    	//mesh.scale.set(.2, .2, .2)
+	//	mesh.position.x =0;
+	//	mesh.position.y =5;
+	//	mesh.position.z =5;
+	//	mesh.rotateY(-90);
+		
+	var loader = new THREE.OBJLoader();
+	loader.load( 'Creature.obj', function ( object ) {
+			object.children[0].geometry.computeBoundingSphere();
+			object.position.x = 0;
+            object.position.y = 5;
+			object.position.z = 5;
+			
+            //object.rotate.y(-90);
+
+            obj = object;
+            texture = THREE.TextureLoader('Creature.png');
+            //material = new THREE.MeshLambertMaterial( { map: texture } );
+			material = new THREE.MeshLambertMaterial();
+			material.map = texture;
+            mesh = new THREE.Mesh( object, material );
+
+    	mesh.scale.set(.2, .2, .2)
     	window.app.scene.add( mesh );
     	
-    	console.log(gpu_geom);
+    	//console.log(gpu_geom);
 
     }); 
 }
