@@ -47,7 +47,7 @@ function initFrog() {
         var texture = undefined // new THREE.TextureLoader('Creature.png');
         object.traverse( function ( child ) {
             if ( child instanceof THREE.Mesh ) {
-                child.material.map = texture;
+                // child.material.map = texture;
             }
         });
 		object.position.x = 0;
@@ -131,18 +131,18 @@ function initSphere() {
 
 
 function render() {
-    var objs = app.objects
+    objs = app.objects
 
     requestAnimationFrame(render)
 
     objs.sphere.mesh.rotation.x += 0.01
     objs.sphere.mesh.rotation.y += 0.01
 
-    for (var x = 1; x < objs.waves.xVerticeNum; x++) {
-        for (var y = 1; y < objs.waves.yVerticeNum; y++) {
-            var geom = objs.waves.vertices[x][y].plane.geometry;
+    for (x = 1; x < objs.waves.xVerticeNum; x++) {
+        for (y = 1; y < objs.waves.yVerticeNum; y++) {
+            geom = objs.waves.vertices[x][y].plane.geometry;
 
-            for (var i = 0; i < 5; i++) {
+            for (i = 0; i < 5; i++) {
                 geom.vertices[i].z = 
                     0.5 * Math.sin(geom.vertices[i].x / 2 + app.frame / 60.0) 
                     + 0.3 * Math.sin(geom.vertices[i].y / 2 + app.frame / 60.0)
