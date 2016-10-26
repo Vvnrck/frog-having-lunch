@@ -2,6 +2,7 @@ initApp()
 initWaves()
 initSphere()
 render()
+initFrog()
 
 
 function initApp() {
@@ -17,11 +18,28 @@ function initApp() {
 
     app.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(app.renderer.domElement)
-    app.camera.position.z = 8
+    app.camera.position.z = 23
     app.camera.lookAt(new THREE.Vector3( 0, 6, 0 ))
     return window.app
 }
 
+function initFrog() {
+	window.app = window.app || initApp()
+	
+	var loader = new THREE.JSONLoader();
+	loader.load( 'Kermit.json', function ( geometry ) {
+	var mesh = new THREE.Mesh( geometry, new THREE.MeshBasicMaterial() );
+
+		mesh.position.x =0;
+		mesh.position.y =5;
+		mesh.position.z =5;
+	mesh.scale.set(.2, .2, .2)
+	window.app.scene.add( mesh );
+	
+	console.log("hui");
+
+        }); 
+}
 
 function initWaves() {
     window.app = window.app || initApp()
