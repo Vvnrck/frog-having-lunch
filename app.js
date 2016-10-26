@@ -11,7 +11,7 @@ function initApp() {
         camera: new THREE.PerspectiveCamera(
             75, window.innerWidth / window.innerHeight, 0.001, 1000
         ),
-        renderer: new THREE.WebGLRenderer(),
+        renderer: new THREE.WebGLRenderer({precision: 'lowp'}),
         objects: {},
         frame: 0
     }
@@ -28,18 +28,21 @@ function initFrog() {
 	
 	var loader = new THREE.JSONLoader();
 	loader.load( 'Frog.json', function ( geometry, materials ) {
-	var mesh = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial( materials ) );
+        var gpu_geom = new THREE.BufferGeometry().fromGeometry(geometry)
+        gpu_geom.computeBoundingBox()
+        gpu_geom.normalizeNormals ()
+	    var mesh = new THREE.Mesh( gpu_geom, new THREE.MeshFaceMaterial( materials ) );
 
 		mesh.position.x =0;
 		mesh.position.y =5;
 		mesh.position.z =5;
 		mesh.rotateY(-90);
-	//mesh.scale.set(.2, .2, .2)
-	window.app.scene.add( mesh );
-	
-	console.log("hui");
+    	//mesh.scale.set(.2, .2, .2)
+    	window.app.scene.add( mesh );
+    	
+    	console.log(gpu_geom);
 
-        }); 
+    }); 
 }
 
 function initWaves() {
