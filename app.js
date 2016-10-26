@@ -11,7 +11,7 @@ function initApp() {
         camera: new THREE.PerspectiveCamera(
             75, window.innerWidth / window.innerHeight, 0.001, 1000
         ),
-        renderer: new THREE.WebGLRenderer({precision: 'lowp'}),
+        renderer: new THREE.WebGLRenderer(),
         objects: {},
         frame: 0
     }
@@ -44,22 +44,18 @@ function initFrog() {
 		
 	var loader = new THREE.OBJLoader();
 	loader.load( 'Creature.obj', function ( object ) {
-			object.children[0].geometry.computeBoundingSphere();
-			object.position.x = 0;
-            object.position.y = 5;
-			object.position.z = 5;
-			
-            //object.rotate.y(-90);
+        var texture = undefined // new THREE.TextureLoader('Creature.png');
+        object.traverse( function ( child ) {
+            if ( child instanceof THREE.Mesh ) {
+                child.material.map = texture;
+            }
+        });
+		object.position.x = 0;
+        object.position.y = 5;
+		object.position.z = 5;
 
-            obj = object;
-            texture = THREE.TextureLoader('Creature.png');
-            //material = new THREE.MeshLambertMaterial( { map: texture } );
-			material = new THREE.MeshLambertMaterial();
-			material.map = texture;
-            mesh = new THREE.Mesh( object, material );
-
-    	mesh.scale.set(.2, .2, .2)
-    	window.app.scene.add( mesh );
+    	object.scale.set(.2, .2, .2)
+    	window.app.scene.add( object );
     	
     	//console.log(gpu_geom);
 
