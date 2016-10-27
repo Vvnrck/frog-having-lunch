@@ -1,6 +1,6 @@
 initApp()
 initWaves()
-initSphere()
+// initSphere()
 render()
 initFrog()
 
@@ -11,14 +11,14 @@ function initApp() {
         camera: new THREE.PerspectiveCamera(
             75, window.innerWidth / window.innerHeight, 0.001, 1000
         ),
-        renderer: new THREE.WebGLRenderer(),
+        renderer: new THREE.WebGLRenderer({antialias: true}),
         objects: {},
         frame: 0
     }
 
     app.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(app.renderer.domElement)
-    app.camera.position.z = 23
+    app.camera.position.z = 10
     app.camera.lookAt(new THREE.Vector3( 0, 6, 0 ))
 	
 	var light = new THREE.AmbientLight( 0x404040, 3 ); // soft white light
@@ -30,36 +30,41 @@ function initApp() {
 function initFrog() {
 	window.app = window.app || initApp()
 	
-	//var loader = new THREE.JSONLoader();
-	//loader.load( 'Frog.json', function ( geometry, materials ) {
-    //    var gpu_geom = new THREE.BufferGeometry().fromGeometry(geometry)
-    //    gpu_geom.computeBoundingBox()
-    //    gpu_geom.normalizeNormals ()
-	//    var mesh = new THREE.Mesh( gpu_geom, new THREE.MeshFaceMaterial( materials ) );
+	var loader = new THREE.ObjectLoader();
+	loader.load( 'telefrog.json', function ( object ) {
+       // var gpu_geom = new THREE.BufferGeometry().fromGeometry(geometry)
+       // gpu_geom.computeBoundingBox()
+       // gpu_geom.normalizeNormals ()
+	   //var mesh = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial( materials ) );
 
-	//	mesh.position.x =0;
-	//	mesh.position.y =5;
-	//	mesh.position.z =5;
-	//	mesh.rotateY(-90);
-		
-	var loader = new THREE.OBJLoader();
-	loader.load( 'Creature.obj', function ( object ) {
-        var texture = undefined // new THREE.TextureLoader('Creature.png');
-        object.traverse( function ( child ) {
-            if ( child instanceof THREE.Mesh ) {
-                // child.material.map = texture;
-            }
-        });
 		object.position.x = 0;
-        object.position.y = 5;
+		object.position.y = 5;
 		object.position.z = 5;
+        object.rotation.y -= 3.14;
+        object.rotation.x += 1;
 
-    	object.scale.set(.2, .2, .2)
-    	window.app.scene.add( object );
+        window.app.scene.add(object)
+
+    });
+		
+	// var loader = new THREE.OBJLoader();
+	// loader.load( 'Creature.obj', function ( object ) {
+ //        var texture = undefined // new THREE.TextureLoader('Creature.png');
+ //        object.traverse( function ( child ) {
+ //            if ( child instanceof THREE.Mesh ) {
+ //                // child.material.map = texture;
+ //            }
+ //        });
+	// 	object.position.x = 0;
+ //        object.position.y = 5;
+	// 	object.position.z = 5;
+
+ //    	object.scale.set(.2, .2, .2)
+ //    	window.app.scene.add( object );
     	
-    	//console.log(gpu_geom);
+ //    	//console.log(gpu_geom);
 
-    }); 
+ //    }); 
 }
 
 function initWaves() {
@@ -135,8 +140,8 @@ function render() {
 
     requestAnimationFrame(render)
 
-    objs.sphere.mesh.rotation.x += 0.01
-    objs.sphere.mesh.rotation.y += 0.01
+    // objs.sphere.mesh.rotation.x += 0.01
+    // objs.sphere.mesh.rotation.y += 0.01
 
     for (x = 1; x < objs.waves.xVerticeNum; x++) {
         for (y = 1; y < objs.waves.yVerticeNum; y++) {
