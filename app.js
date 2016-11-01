@@ -9,7 +9,7 @@ function initApp() {
     window.app = window.app || {
         scene: new THREE.Scene(),
         camera: new THREE.PerspectiveCamera(
-            85, window.innerWidth / window.innerHeight, 0.001, 1000
+            50, window.innerWidth / window.innerHeight, 0.001, 300000
         ),
         renderer: new THREE.WebGLRenderer({antialias: true}),
         objects: {},
@@ -18,8 +18,7 @@ function initApp() {
 
     app.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(app.renderer.domElement)
-    app.camera.position.z = 10
-    app.camera.lookAt(new THREE.Vector3( 0, 6, 0 ))
+
 	
 	var light = new THREE.AmbientLight( 0x404040, 1 ); // soft white light
     window.app.scene.add( light );
@@ -30,7 +29,14 @@ function initApp() {
 	
     app.orbitControl = new THREE.OrbitControls(
         app.camera, app.renderer.domElement
-    );
+    )
+    
+    app.camera.position.set(0, 0, 10);
+    // app.camera.lookAt(new THREE.Vector3( 0, 6, 0 ))
+    app.camera.lookAt(new THREE.Vector3(
+        -1.83742, -10.5427, 4.8626 
+    ))
+    app.orbitControl.update()
     return window.app
 }
 
@@ -112,13 +118,15 @@ function initSkybox() {
 
     var materialArray = [];
 	for (var i = 0; i < 6; i++) {
-        if (i == 2)
-        materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'skybox.jpg' ) }));
+        if (true || i == 2)
+        materialArray.push(new THREE.MeshBasicMaterial( { 
+            map: THREE.ImageUtils.loadTexture( 'skybox.jpg' ) 
+        }));
         else materialArray.push({})
 	    materialArray[i].side = THREE.BackSide;
     }
 	var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
-	var skyboxGeom = new THREE.BoxBufferGeometry( 600, 400, 320);
+	var skyboxGeom = new THREE.BoxBufferGeometry( 100000, 100000, 100000, 1, 1, 1, null, true);
 	var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
 	window.app.scene.add( skybox );
 }
