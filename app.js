@@ -2,6 +2,7 @@ initApp()
 initWaves()
 // initSphere()
 render()
+initFrog()
 
 
 function initApp() {
@@ -10,18 +11,61 @@ function initApp() {
         camera: new THREE.PerspectiveCamera(
             75, window.innerWidth / window.innerHeight, 0.001, 1000
         ),
-        renderer: new THREE.WebGLRenderer(),
+        renderer: new THREE.WebGLRenderer({antialias: true}),
         objects: {},
         frame: 0
     }
 
     app.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(app.renderer.domElement)
-    app.camera.position.z = 8
+    app.camera.position.z = 10
     app.camera.lookAt(new THREE.Vector3( 0, 6, 0 ))
+	
+	var light = new THREE.AmbientLight( 0x404040, 3 ); // soft white light
+    window.app.scene.add( light );
+	
     return window.app
 }
 
+function initFrog() {
+	window.app = window.app || initApp()
+	
+	var loader = new THREE.ObjectLoader();
+	loader.load( 'telefrog.json', function ( object ) {
+       // var gpu_geom = new THREE.BufferGeometry().fromGeometry(geometry)
+       // gpu_geom.computeBoundingBox()
+       // gpu_geom.normalizeNormals ()
+	   //var mesh = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial( materials ) );
+
+		object.position.x = 0;
+		object.position.y = 5;
+		object.position.z = 5;
+        object.rotation.y -= 3.14;
+        object.rotation.x += 1;
+
+        window.app.scene.add(object)
+
+    });
+		
+	// var loader = new THREE.OBJLoader();
+	// loader.load( 'Creature.obj', function ( object ) {
+ //        var texture = undefined // new THREE.TextureLoader('Creature.png');
+ //        object.traverse( function ( child ) {
+ //            if ( child instanceof THREE.Mesh ) {
+ //                // child.material.map = texture;
+ //            }
+ //        });
+	// 	object.position.x = 0;
+ //        object.position.y = 5;
+	// 	object.position.z = 5;
+
+ //    	object.scale.set(.2, .2, .2)
+ //    	window.app.scene.add( object );
+    	
+ //    	//console.log(gpu_geom);
+
+ //    }); 
+}
 
 function initWaves() {
     window.app = window.app || initApp()
@@ -94,15 +138,18 @@ function initSphere() {
 
 
 function render() {
-    var objs = app.objects
+    objs = app.objects
 
     requestAnimationFrame(render)
 
-    for (var x = 1; x < objs.waves.xVerticeNum; x++) {
-        for (var y = 1; y < objs.waves.yVerticeNum; y++) {
-            var geom = objs.waves.vertices[x][y].plane.geometry;
+    // objs.sphere.mesh.rotation.x += 0.01
+    // objs.sphere.mesh.rotation.y += 0.01
 
-            for (var i = 0; i < 5; i++) {
+    for (x = 1; x < objs.waves.xVerticeNum; x++) {
+        for (y = 1; y < objs.waves.yVerticeNum; y++) {
+            geom = objs.waves.vertices[x][y].plane.geometry;
+
+            for (i = 0; i < 5; i++) {
                 geom.vertices[i].z = 
                     0.5 * Math.sin(geom.vertices[i].x / 2 + app.frame / 60.0) 
                     + 0.3 * Math.sin(geom.vertices[i].y / 2 + app.frame / 60.0)
