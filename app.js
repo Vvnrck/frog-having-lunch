@@ -44,6 +44,14 @@ function initApp() {
         -1.83742, -10.5427, 4.8626 
     ))
     app.orbitControl.update()
+
+    app.raycaster = new THREE.Raycaster()
+    app.raycaster.params.Points.threshold = 0.4
+    app.mousePos = new THREE.Vector2()
+    app.renderer.domElement.addEventListener(
+        'mousemove', onDocumentMouseMove, false
+    );
+
     return window.app
 }
 
@@ -178,16 +186,26 @@ function initKamish() {
 
 function initWisp() {
     var sphere = new THREE.SphereGeometry(0.1, 16, 8);
+    var raycastSphere = new THREE.SphereGeometry(1, 16, 8);
     light1 = new THREE.PointLight(0xccdfff, 0.8, 50, 2);
     light1.add( new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({
         color: 0xccdfff
     })))
     window.app.scene.add(light1)
+
     window.app.objects.wisp = {
+        raycastSphere: raycastSphere,
+        raycastMesh: new THREE.Mesh(raycastSphere, new THREE.MeshBasicMaterial({
+            opacity: 0,
+            transparent: true
+        })),
         body: light1,
         direction: 0,
-        step: 60
+        step: 60,
+        intersected: false
     }
+    window.app.scene.add(window.app.objects.wisp.raycastMesh)
+
 }
 
 function _rand(from, to) {
@@ -226,8 +244,30 @@ function render() {
     objs.wisp.body.position.x -= objs.wisp.direction[0]
     objs.wisp.body.position.y -= objs.wisp.direction[1]
     objs.wisp.body.position.z -= objs.wisp.direction[2]
+    objs.wisp.raycastMesh.position.x = objs.wisp.body.position.x
+    objs.wisp.raycastMesh.position.y = objs.wisp.body.position.y
+    objs.wisp.raycastMesh.position.z = objs.wisp.body.position.z
     objs.wisp.step++
 
     app.frame++;
     app.renderer.render(app.scene, app.camera)
+}
+
+
+function onDocumentMouseMove( event ) {
+    event.preventDefault();
+    app.mousePos.x = ( event.clientX / window.innerWidth ) * 2 - 1
+    app.mousePos.y = - ( event.clientY / window.innerHeight ) * 2 + 1
+    app.raycaster.setFromCamera( app.mousePos, app.camera )
+
+    var intersections = app.raycaster.intersectObject(
+        window.app.objects.wisp.raycastMesh, true
+    );
+    if ( intersections.length > 0 ) {
+        window.app.objects.wisp.body.intensity = 1.5
+        document.body.style.cursor = 'pointer';
+    } else {
+        window.app.objects.wisp.body.intensity = 0.8
+        document.body.style.cursor = 'auto';
+    }
 }
