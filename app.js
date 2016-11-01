@@ -1,8 +1,11 @@
 initApp()
 initWaves()
 initSkybox()
-render()
 initFrog()
+initIsland()
+// initKamish()
+initWisp()
+render()
 
 
 function initApp() {
@@ -23,9 +26,13 @@ function initApp() {
 	var light = new THREE.AmbientLight( 0x404040, 1 ); // soft white light
     window.app.scene.add( light );
     
-    var directionalLight = new THREE.DirectionalLight( 0x404040, 2 );
-    directionalLight.position.set( -10, -10, 10 );
-    window.app.scene.add( directionalLight );
+    var directionalLight1 = new THREE.DirectionalLight( 0x404040, 1 );
+    directionalLight1.position.set( 10, -10, 10 );
+    window.app.scene.add( directionalLight1 );
+
+    var directionalLight1 = new THREE.DirectionalLight( 0x404040, 0.5 );
+    directionalLight1.position.set( 10, 10, 10 );
+    window.app.scene.add( directionalLight1 );
 	
     app.orbitControl = new THREE.OrbitControls(
         app.camera, app.renderer.domElement
@@ -46,12 +53,26 @@ function initFrog() {
 	var loader = new THREE.ObjectLoader();
 	loader.load( 'telefrog.json', function ( object ) {
 		object.position.x = 4;
-		object.position.y = 5;
-		object.position.z = 5;
+		object.position.y = 4;
+		object.position.z = 1.5;
         object.rotation.y -= 3.8;
-        object.rotation.x += 1.2;
+        object.rotation.x += 3.14/2;
         window.app.scene.add(object)
     });
+}
+
+function initIsland() {
+    window.app = window.app || initApp()
+    var loader = new THREE.ObjectLoader();
+    loader.load( 'island.json', function ( object ) {
+        object.position.x = 4;
+        object.position.y = 4;
+        object.position.z = 0.5;
+        object.scale.set(2, 2, 2)
+        object.rotation.y += 3*3.14/2;
+        object.rotation.x += 3.14/2;
+        window.app.scene.add(object)
+    }); 
 }
 
 function initWaves() {
@@ -90,13 +111,13 @@ function initWaves() {
                 rectShape.faces.push(new THREE.Face3(2, 3, 4))
 
                 var material = new THREE.MeshPhongMaterial({
-                    color: 0x2194ce,
+                    color: 0x114B6A,
                     shininess: 100,
                     shading: THREE.FlatShading
                 })
                 
                 var material2 = new THREE.MeshStandardMaterial({
-                    color: 0x2194ce,
+                    color: 0x114B6A,
                     roughness: 0.1,
                     metalness: 1.0,
                     shading: THREE.FlatShading
@@ -131,32 +152,81 @@ function initSkybox() {
 	window.app.scene.add( skybox );
 }
 
+function initKamish() {
+    // load all kamishes
+    var kamishes = []
+    var loader = new THREE.ObjectLoader();
+    loader.load( 'kamish1.json', function ( object ) { kamishes.push(object) })
+    loader.load( 'kamish2.json', function ( object ) { kamishes.push(object) })
+    loader.load( 'kamish3.json', function ( object ) { 
+        kamishes.push(object) 
+        window.app.scene.add(getKamish())
+    })
+
+    function getKamish() {
+        var index = parseInt(Math.random() * 10) % 3
+        var kamish = kamishes[index].clone()
+        kamish.scale.set(3, 4, 3)
+        // kamish.rotation.y += 3*3.14/2
+        kamish.rotation.x += 3.14/2
+        kamish.rotation.y += 3.14 * Math.random()
+        kamish.position.z = 0.6
+        return kamish
+    }
+    
+}
+
+function initWisp() {
+    var sphere = new THREE.SphereGeometry(0.1, 16, 8);
+    light1 = new THREE.PointLight(0xccdfff, 0.8, 50, 2);
+    light1.add( new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({
+        color: 0xccdfff
+    })))
+    window.app.scene.add(light1)
+    window.app.objects.wisp = {
+        body: light1,
+        direction: 0,
+        step: 60
+    }
+}
+
+function _rand(from, to) {
+    return Math.random() * (to - from) + from
+}
 
 function render() {
     objs = app.objects
 
     requestAnimationFrame(render)
 
-    // objs.sphere.mesh.rotation.x += 0.01
-    // objs.sphere.mesh.rotation.y += 0.01
-
     window.app.orbitControl.update()
 
+    // waves
     for (x = 1; x < objs.waves.xVerticeNum; x++) {
         for (y = 1; y < objs.waves.yVerticeNum; y++) {
             geom = objs.waves.vertices[x][y].plane.geometry;
-
             for (i = 0; i < 5; i++) {
                 geom.vertices[i].z = 
                     0.5 * Math.sin(geom.vertices[i].x / 2 + app.frame / 60.0) 
                     + 0.3 * Math.sin(geom.vertices[i].y / 2 + app.frame / 60.0)
-            }
-            
+            }          
             geom.verticesNeedUpdate = true
-            // geom.computeFaceNormals()
-            // geom.computeVertexNormals()
         }
     }
+
+    // wisp
+    if (objs.wisp.step == 60) {
+        objs.wisp.direction = [
+            (objs.wisp.body.position.x - _rand(0, -5)) / 60.0,
+            (objs.wisp.body.position.y - _rand(0, -5)) / 60.0,
+            (objs.wisp.body.position.z - _rand(1, 5)) / 60.0,
+        ]
+        objs.wisp.step = 0
+    }
+    objs.wisp.body.position.x -= objs.wisp.direction[0]
+    objs.wisp.body.position.y -= objs.wisp.direction[1]
+    objs.wisp.body.position.z -= objs.wisp.direction[2]
+    objs.wisp.step++
 
     app.frame++;
     app.renderer.render(app.scene, app.camera)
