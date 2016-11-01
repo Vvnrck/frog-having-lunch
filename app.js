@@ -1,6 +1,6 @@
 initApp()
 initWaves()
-// initSphere()
+initSkybox()
 render()
 initFrog()
 
@@ -9,7 +9,7 @@ function initApp() {
     window.app = window.app || {
         scene: new THREE.Scene(),
         camera: new THREE.PerspectiveCamera(
-            75, window.innerWidth / window.innerHeight, 0.001, 1000
+            85, window.innerWidth / window.innerHeight, 0.001, 1000
         ),
         renderer: new THREE.WebGLRenderer({antialias: true}),
         objects: {},
@@ -21,8 +21,12 @@ function initApp() {
     app.camera.position.z = 10
     app.camera.lookAt(new THREE.Vector3( 0, 6, 0 ))
 	
-	var light = new THREE.AmbientLight( 0x404040, 3 ); // soft white light
+	var light = new THREE.AmbientLight( 0x404040, 1 ); // soft white light
     window.app.scene.add( light );
+    
+    var directionalLight = new THREE.DirectionalLight( 0x404040, 2 );
+    directionalLight.position.set( -10, -10, 10 );
+    window.app.scene.add( directionalLight );
 	
     return window.app
 }
@@ -32,39 +36,13 @@ function initFrog() {
 	
 	var loader = new THREE.ObjectLoader();
 	loader.load( 'telefrog.json', function ( object ) {
-       // var gpu_geom = new THREE.BufferGeometry().fromGeometry(geometry)
-       // gpu_geom.computeBoundingBox()
-       // gpu_geom.normalizeNormals ()
-	   //var mesh = new THREE.Mesh( geometry, new THREE.MeshFaceMaterial( materials ) );
-
-		object.position.x = 0;
+		object.position.x = 4;
 		object.position.y = 5;
 		object.position.z = 5;
-        object.rotation.y -= 3.14;
-        object.rotation.x += 1;
-
+        object.rotation.y -= 3.8;
+        object.rotation.x += 1.2;
         window.app.scene.add(object)
-
     });
-		
-	// var loader = new THREE.OBJLoader();
-	// loader.load( 'Creature.obj', function ( object ) {
- //        var texture = undefined // new THREE.TextureLoader('Creature.png');
- //        object.traverse( function ( child ) {
- //            if ( child instanceof THREE.Mesh ) {
- //                // child.material.map = texture;
- //            }
- //        });
-	// 	object.position.x = 0;
- //        object.position.y = 5;
-	// 	object.position.z = 5;
-
- //    	object.scale.set(.2, .2, .2)
- //    	window.app.scene.add( object );
-    	
- //    	//console.log(gpu_geom);
-
- //    }); 
 }
 
 function initWaves() {
@@ -73,8 +51,8 @@ function initWaves() {
     // Create WAVES
     var waves = {
         xVerticeNum: 50,
-        yVerticeNum: 25,
-        verticeOffset: 1.5,
+        yVerticeNum: 17,
+        verticeOffset: 2,
         vertices: [] 
     }
     for (var x = 0; x < waves.xVerticeNum; x++) {
@@ -101,10 +79,18 @@ function initWaves() {
                 )
                 rectShape.faces.push(new THREE.Face3(0, 1, 2))
                 rectShape.faces.push(new THREE.Face3(2, 3, 4))
-                // rectShape.computeFaceNormals();
 
                 var material = new THREE.MeshPhongMaterial({
-                    color: 0x2194ce
+                    color: 0x2194ce,
+                    shininess: 100,
+                    shading: THREE.FlatShading
+                })
+                
+                var material2 = new THREE.MeshStandardMaterial({
+                    color: 0x2194ce,
+                    roughness: 0.1,
+                    metalness: 1.0,
+                    shading: THREE.FlatShading
                 })
                 var polygon = new THREE.Mesh(rectShape, material)
                 waves.vertices[x][y].plane = {
@@ -118,22 +104,20 @@ function initWaves() {
     app.objects.waves = waves
 }
 
-function initSphere() {
+function initSkybox() {
     window.app = window.app || initApp()
 
-    var geometry = new THREE.IcosahedronGeometry(1, 1);
-    var material = new THREE.MeshBasicMaterial({
-        color: 0x00ff00,
-        wireframe: true
-    });
-    var sphere = new THREE.Mesh(geometry, material);
-    sphere.position.add(new THREE.Vector3(0, 5, 5))
-
-    window.app.scene.add(sphere);
-    window.app.objects.sphere = {
-        geometry: geometry,
-        mesh: sphere
+    var materialArray = [];
+	for (var i = 0; i < 6; i++) {
+        if (i == 2)
+        materialArray.push(new THREE.MeshBasicMaterial( { map: THREE.ImageUtils.loadTexture( 'skybox.jpg' ) }));
+        else materialArray.push({})
+	    materialArray[i].side = THREE.BackSide;
     }
+	var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
+	var skyboxGeom = new THREE.BoxBufferGeometry( 600, 400, 320);
+	var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
+	window.app.scene.add( skybox );
 }
 
 
