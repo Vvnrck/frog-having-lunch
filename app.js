@@ -28,6 +28,9 @@ function initApp() {
     directionalLight.position.set( -10, -10, 10 );
     window.app.scene.add( directionalLight );
 	
+    app.orbitControl = new THREE.OrbitControls(
+        app.camera, app.renderer.domElement
+    );
     return window.app
 }
 
@@ -128,6 +131,8 @@ function render() {
 
     // objs.sphere.mesh.rotation.x += 0.01
     // objs.sphere.mesh.rotation.y += 0.01
+
+    window.app.orbitControl.update()
 
     for (x = 1; x < objs.waves.xVerticeNum; x++) {
         for (y = 1; y < objs.waves.yVerticeNum; y++) {
