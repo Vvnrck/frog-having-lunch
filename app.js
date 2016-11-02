@@ -178,17 +178,18 @@ function initSkybox() {
 
     var materialArray = [];
 	for (var i = 0; i < 6; i++) {
-        if (true || i == 2)
+        if (i == 2)
         materialArray.push(new THREE.MeshBasicMaterial( { 
-            map: THREE.ImageUtils.loadTexture( 'skybox2.jpg' )
+            map: THREE.ImageUtils.loadTexture( 'skybox3.jpg' )
         }));
         else materialArray.push({})
 	    materialArray[i].side = THREE.BackSide;
     }
 	var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
-	var skyboxGeom = new THREE.BoxBufferGeometry(100000, 100000, 100000, 1,
+	var skyboxGeom = new THREE.BoxBufferGeometry(120000, 110000, 120000, 1,
                                                  1, 1, null, true)
 	var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
+    window.app.objects.skybox = skybox
 	window.app.scene.add( skybox );
 }
 
@@ -270,7 +271,7 @@ function initWisp() {
             flyingAround: { steps: 120 },
             goingToBeEaten: { steps: 5 },
             beingEaten: { steps: 15 },
-            eaten: { steps: 120 }
+            eaten: { steps: 1200 }
         },
         currentStatus: 'arriving',
         hoverControlsLux: true,
@@ -324,6 +325,8 @@ function render() {
 
     if (!window.app.fixedCam)
         window.app.orbitControl.update()
+
+    window.app.objects.skybox.rotation.y += 0.001
 
     // waves
     for (x = 1; x < objs.waves.xVerticeNum; x++) {
