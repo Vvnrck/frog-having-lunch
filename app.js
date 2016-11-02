@@ -27,10 +27,10 @@ function initApp() {
 
 
 	
-	var light = new THREE.AmbientLight( 0x404040, 1 ); // soft white light
+	var light = new THREE.AmbientLight( 0x404040, 0.5 ); // soft white light
     window.app.scene.add( light );
     
-    var spotLight = new THREE.SpotLight( 0x404040, 1.1 );
+    var spotLight = new THREE.SpotLight( 0x404040, 0.8 );
     spotLight.position.set( -15, 10, 10 );
     window.app.scene.add( spotLight );
 
@@ -79,7 +79,7 @@ function initFrog() {
     });
 
     // tongue
-    var geometry = new THREE.ConeGeometry( 0.2, 0.1, 6 )
+    var geometry = new THREE.ConeGeometry( 0.1, 0.1, 6 )
     var material = new THREE.MeshPhongMaterial({
         color: 0xaa4444,
         shininess: 100,
@@ -88,7 +88,7 @@ function initFrog() {
     var cone = new THREE.Mesh( geometry, material )
     cone.position.x = 3.8
     cone.position.y = 3.6
-    cone.position.z = 1.7
+    cone.position.z = 1.8
     cone.rotation.z -= 3.8;
 
     console.log(cone)
