@@ -265,7 +265,7 @@ function initWisp() {
         intersected: false,
         possibleStatuses: {
             arriving: { steps: 120 },
-            flyingAround: { steps: 45 },
+            flyingAround: { steps: 120 },
             goingToBeEaten: { steps: 5 },
             beingEaten: { steps: 15 },
             eaten: { steps: 120 }
@@ -328,8 +328,8 @@ function render() {
             geom = objs.waves.vertices[x][y].plane.geometry;
             for (i = 0; i < 5; i++) {
                 geom.vertices[i].z = 
-                    0.5 * Math.sin(geom.vertices[i].x / 2 + app.frame / 60.0) 
-                    + 0.3 * Math.sin(geom.vertices[i].y / 2 + app.frame / 60.0)
+                    0.5 * Math.sin(geom.vertices[i].x / 2 + app.frame / 120) 
+                    + 0.3 * Math.sin(geom.vertices[i].y / 2 + app.frame / 120)
             }          
             geom.verticesNeedUpdate = true
         }
