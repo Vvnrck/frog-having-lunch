@@ -70,6 +70,27 @@ function initFrog() {
         window.app.objects.frog = object
         window.app.scene.add(object)
     });
+
+    // tongue
+    var geometry = new THREE.ConeGeometry( 0.2, 0.1, 4 )
+    var material = new THREE.MeshPhongMaterial({
+        color: 0xaa4444,
+        shininess: 100,
+        shading: THREE.FlatShading
+    })
+    var cone = new THREE.Mesh( geometry, material )
+    cone.position.x = 3.8
+    cone.position.y = 3.8
+    cone.position.z = 1.8
+    cone.rotation.z -= 3.8;
+
+    console.log(cone)
+
+    window.app.objects.frogTongue = {
+        body: cone,
+        direction: [0, 0, 0]
+    }
+    window.app.scene.add(cone)
 }
 
 function initIsland() {
@@ -210,7 +231,7 @@ function initWisp() {
         possibleStatuses: {
             arriving: { steps: 120 },
             flyingAround: { steps: 60 },
-            goindToBeEaten: { steps: 10 },
+            goingToBeEaten: { steps: 10 },
             beingEaten: { steps: 10 },
             eaten: { steps: 120 }
         },
@@ -253,13 +274,13 @@ function render() {
         case 'arriving':
             if (!objs.wisp.step) {
                 objs.wisp.hoverControlsLux = true
-                objs.wisp.body.intensity = 0.8
-                objs.wisp.body.position.x = 50
-                objs.wisp.body.position.y = 50
-                objs.wisp.body.position.z = 50
+                objs.wisp.body.intensity = 1
+                objs.wisp.body.position.x = -50
+                objs.wisp.body.position.y = -50
+                objs.wisp.body.position.z = 5
                 objs.wisp.direction = [
-                    (objs.wisp.body.position.x - 2) / wispAnimLen,
-                    (objs.wisp.body.position.y - 2) / wispAnimLen,
+                    (objs.wisp.body.position.x - 0) / wispAnimLen,
+                    (objs.wisp.body.position.y - 0) / wispAnimLen,
                     (objs.wisp.body.position.z - 2) / wispAnimLen,
                 ]
 
@@ -283,11 +304,11 @@ function render() {
             }
             break
 
-        case 'goindToBeEaten':
+        case 'goingToBeEaten':
             if (!objs.wisp.step) {
                 objs.wisp.direction = [0, 0, 0]
                 objs.wisp.hoverControlsLux = false
-                objs.wisp.body.intensity = 1.5
+                objs.wisp.body.intensity = 2
             }
             if (objs.wisp.step == wispAnimLen) {
                 objs.wisp.currentStatus = 'beingEaten'
@@ -320,6 +341,60 @@ function render() {
             }
             break
     }
+
+
+    // tongue
+    
+    if (objs.wisp.currentStatus == 'goingToBeEaten') {
+        var tonguePos = objs.frogTongue.body.geometry.vertices[1]
+        var globalTonguePos = objs.frogTongue.body.localToWorld(tonguePos)
+
+        if (objs.wisp.step == stepToNextAnimation) {
+
+            var animLen = objs.wisp.possibleStatuses.goingToBeEaten.steps + 1
+            objs.frogTongue.direction = [
+                (globalTonguePos.x - objs.wisp.body.position.x) / animLen,
+                (globalTonguePos.y - objs.wisp.body.position.y) / animLen,
+                (globalTonguePos.z - objs.wisp.body.position.z) / animLen,
+            ]
+        }
+
+        // change the pos
+        globalTonguePos.x -= objs.frogTongue.direction[0]
+        globalTonguePos.y -= objs.frogTongue.direction[1]
+        globalTonguePos.z -= objs.frogTongue.direction[2]
+        tonguePos = objs.frogTongue.body.worldToLocal(globalTonguePos)
+        objs.frogTongue.body.geometry.verticesNeedUpdate = true
+
+        var dist = [
+            globalTonguePos.x - objs.wisp.body.position.x,
+            globalTonguePos.y - objs.wisp.body.position.y,
+            globalTonguePos.z - objs.wisp.body.position.z,
+        ]
+        console.log(Math.sqrt(
+            Math.pow(dist[0], 2)
+            +Math.pow(dist[1], 2)
+            +Math.pow(dist[2], 2)
+        ))
+    }
+    else if (objs.wisp.currentStatus == 'beingEaten') {
+        // clone position from the wisp
+        objs.frogTongue.body.geometry.vertices[1].x = objs.wisp.body.position.x
+        objs.frogTongue.body.geometry.vertices[1].y = objs.wisp.body.position.y
+        objs.frogTongue.body.geometry.vertices[1].z = objs.wisp.body.position.z
+        objs.frogTongue.body.worldToLocal(
+            objs.frogTongue.body.geometry.vertices[1]
+        )
+        objs.frogTongue.body.geometry.verticesNeedUpdate = true
+    }
+    else {
+        objs.frogTongue.body.geometry.vertices[1].x = 0
+        objs.frogTongue.body.geometry.vertices[1].y = 0
+        objs.frogTongue.body.geometry.vertices[1].z = 0
+        objs.frogTongue.body.geometry.verticesNeedUpdate = true
+    }
+
+
     objs.wisp.body.position.x -= objs.wisp.direction[0]
     objs.wisp.body.position.y -= objs.wisp.direction[1]
     objs.wisp.body.position.z -= objs.wisp.direction[2]
@@ -328,6 +403,13 @@ function render() {
     objs.wisp.raycastMesh.position.z = objs.wisp.body.position.z
     objs.wisp.step++
     
+
+    // Move tongue:
+    // > app.objects.frogTongue.geometry.vertices[1].y = 4
+    // > app.objects.frogTongue.geometry.vertices[1].x = 0
+    // > app.objects.frogTongue.geometry.verticesNeedUpdate = true
+
+
 
     app.frame++;
     app.renderer.render(app.scene, app.camera)
@@ -345,13 +427,13 @@ function onDocumentMouseMove(event) {
     );
     if ( intersections.length > 0 ) {
         if (window.app.objects.wisp.hoverControlsLux) {
-            window.app.objects.wisp.body.intensity = 1.1
+            window.app.objects.wisp.body.intensity = 1.4
         }
         window.app.objects.wisp.hovered = true
         document.body.style.cursor = 'pointer';
     } else {
         if (window.app.objects.wisp.hoverControlsLux) {
-            window.app.objects.wisp.body.intensity = 0.8
+            window.app.objects.wisp.body.intensity = 1
         }
         window.app.objects.wisp.hovered = false
         document.body.style.cursor = 'auto';
@@ -361,7 +443,7 @@ function onDocumentMouseMove(event) {
 function onDocumentMouseClick(event) {
     event.preventDefault();
     if (window.app.objects.wisp.hovered) {
-        window.app.objects.wisp.currentStatus = 'goindToBeEaten'
+        window.app.objects.wisp.currentStatus = 'goingToBeEaten'
         window.app.objects.wisp.step = stepToNextAnimation
     }
 }
