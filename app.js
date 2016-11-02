@@ -17,7 +17,8 @@ function initApp() {
         ),
         renderer: new THREE.WebGLRenderer({antialias: true}),
         objects: {},
-        frame: 0
+        frame: 0,
+        fixedCam: true
     }
 
     app.renderer.setSize(window.innerWidth, window.innerHeight)
@@ -39,16 +40,17 @@ function initApp() {
     directionalLight2.shadowCameraVisible = true
     window.app.scene.add( directionalLight2 );
 	
-    app.orbitControl = new THREE.OrbitControls(
-        app.camera, app.renderer.domElement
-    )
+    if (!app.fixedCam) {
+        app.orbitControl = new THREE.OrbitControls(
+            app.camera, app.renderer.domElement
+        )   
+        app.orbitControl.update()    
+    }
     
-    app.camera.position.set(0, 0, 10);
-    // app.camera.lookAt(new THREE.Vector3( 0, 6, 0 ))
+    app.camera.position.set(0, -15, 5);
     app.camera.lookAt(new THREE.Vector3(
-        -1.83742, -10.5427, 4.8626 
+        0, 100, 0
     ))
-    app.orbitControl.update()
 
     app.raycaster = new THREE.Raycaster()
     app.raycaster.params.Points.threshold = 0.4
@@ -300,7 +302,7 @@ function initWall() {
         window.app.scene.add(object2)
 
         object3.scale.set(1.5, 2, 1.5)
-        object3.position.z = -1.1;
+        object3.position.z = -1.5;
         object3.position.y = 28;
         object3.rotation.y += 3*3.14/2;
         object3.rotation.x += 3.14/2;
@@ -320,7 +322,8 @@ function render() {
 
     requestAnimationFrame(render)
 
-    window.app.orbitControl.update()
+    if (!window.app.fixedCam)
+        window.app.orbitControl.update()
 
     // waves
     for (x = 1; x < objs.waves.xVerticeNum; x++) {
