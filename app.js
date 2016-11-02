@@ -250,7 +250,7 @@ function initKamish() {
 function initWisp() {
     var sphere = new THREE.SphereGeometry(0.1, 16, 8);
     var raycastSphere = new THREE.SphereGeometry(0.5, 16, 8);
-    light1 = new THREE.PointLight(0xccdfff, 0.8, 50, 2);
+    light1 = new THREE.PointLight(0xccdfff, 0.8, 50, 3);
     light1.add( new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({
         color: 0xccdfff
     })))
@@ -336,6 +336,7 @@ function render() {
                 geom.vertices[i].z = 
                     0.5 * Math.sin(geom.vertices[i].x / 2 + app.frame / 120) 
                     + 0.3 * Math.sin(geom.vertices[i].y / 2 + app.frame / 120)
+                    + 0.05 * Math.sin(geom.vertices[i].x + geom.vertices[i].y + app.frame / 12)
             }          
             geom.verticesNeedUpdate = true
         }
