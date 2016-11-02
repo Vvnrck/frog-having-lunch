@@ -51,7 +51,9 @@ function initApp() {
     app.renderer.domElement.addEventListener(
         'mousemove', onDocumentMouseMove, false
     );
-
+    app.renderer.domElement.addEventListener(
+        'mouseup', onDocumentMouseClick, false
+    );
     return window.app
 }
 
@@ -65,6 +67,7 @@ function initFrog() {
 		object.position.z = 1.5;
         object.rotation.y -= 3.8;
         object.rotation.x += 3.14/2;
+        window.app.objects.frog = object
         window.app.scene.add(object)
     });
 }
@@ -149,13 +152,14 @@ function initSkybox() {
 	for (var i = 0; i < 6; i++) {
         if (true || i == 2)
         materialArray.push(new THREE.MeshBasicMaterial( { 
-            map: THREE.ImageUtils.loadTexture( 'skybox.jpg' ) 
+            map: THREE.ImageUtils.loadTexture( 'skybox2.jpg' )
         }));
         else materialArray.push({})
 	    materialArray[i].side = THREE.BackSide;
     }
 	var skyboxMaterial = new THREE.MeshFaceMaterial( materialArray );
-	var skyboxGeom = new THREE.BoxBufferGeometry( 100000, 100000, 100000, 1, 1, 1, null, true);
+	var skyboxGeom = new THREE.BoxBufferGeometry(100000, 100000, 100000, 1,
+                                                 1, 1, null, true)
 	var skybox = new THREE.Mesh( skyboxGeom, skyboxMaterial );
 	window.app.scene.add( skybox );
 }
@@ -201,8 +205,18 @@ function initWisp() {
         })),
         body: light1,
         direction: 0,
-        step: 60,
-        intersected: false
+        step: 0,
+        intersected: false,
+        possibleStatuses: {
+            arriving: { steps: 120 },
+            flyingAround: { steps: 60 },
+            goindToBeEaten: { steps: 10 },
+            beingEaten: { steps: 10 },
+            eaten: { steps: 120 }
+        },
+        currentStatus: 'arriving',
+        hoverControlsLux: true,
+        hovered: false
     }
     window.app.scene.add(window.app.objects.wisp.raycastMesh)
 
@@ -213,6 +227,7 @@ function _rand(from, to) {
 }
 
 function render() {
+    stepToNextAnimation = -1
     objs = app.objects
 
     requestAnimationFrame(render)
@@ -233,13 +248,77 @@ function render() {
     }
 
     // wisp
-    if (objs.wisp.step == 60) {
-        objs.wisp.direction = [
-            (objs.wisp.body.position.x - _rand(0, -5)) / 60.0,
-            (objs.wisp.body.position.y - _rand(0, -5)) / 60.0,
-            (objs.wisp.body.position.z - _rand(1, 5)) / 60.0,
-        ]
-        objs.wisp.step = 0
+    var wispAnimLen = objs.wisp.possibleStatuses[objs.wisp.currentStatus].steps
+    switch (objs.wisp.currentStatus) {
+        case 'arriving':
+            if (!objs.wisp.step) {
+                objs.wisp.hoverControlsLux = true
+                objs.wisp.body.intensity = 0.8
+                objs.wisp.body.position.x = 50
+                objs.wisp.body.position.y = 50
+                objs.wisp.body.position.z = 50
+                objs.wisp.direction = [
+                    (objs.wisp.body.position.x - 2) / wispAnimLen,
+                    (objs.wisp.body.position.y - 2) / wispAnimLen,
+                    (objs.wisp.body.position.z - 2) / wispAnimLen,
+                ]
+
+            }
+            if (objs.wisp.step == wispAnimLen) {
+                objs.wisp.currentStatus = 'flyingAround'
+                objs.wisp.step = stepToNextAnimation
+            }
+            break
+
+        case 'flyingAround':
+            if (!objs.wisp.step) {
+                objs.wisp.direction = [
+                    (objs.wisp.body.position.x - _rand(0, -5)) / wispAnimLen,
+                    (objs.wisp.body.position.y - _rand(0, -5)) / wispAnimLen,
+                    (objs.wisp.body.position.z - _rand(1, 5)) / wispAnimLen,
+                ]
+            }
+            if (objs.wisp.step == wispAnimLen) {
+                objs.wisp.step = stepToNextAnimation
+            }
+            break
+
+        case 'goindToBeEaten':
+            if (!objs.wisp.step) {
+                objs.wisp.direction = [0, 0, 0]
+                objs.wisp.hoverControlsLux = false
+                objs.wisp.body.intensity = 1.5
+            }
+            if (objs.wisp.step == wispAnimLen) {
+                objs.wisp.currentStatus = 'beingEaten'
+                objs.wisp.step = stepToNextAnimation
+            }
+            break
+
+        case 'beingEaten':
+            if (!objs.wisp.step) {
+                objs.wisp.direction = [
+                    (objs.wisp.body.position.x - objs.frog.position.x) / wispAnimLen,
+                    (objs.wisp.body.position.y - objs.frog.position.y) / wispAnimLen,
+                    (objs.wisp.body.position.z - objs.frog.position.z) / wispAnimLen,
+                ]
+            }
+            if (objs.wisp.step == wispAnimLen) {
+                objs.wisp.currentStatus = 'eaten'
+                objs.wisp.step = stepToNextAnimation
+                objs.wisp.body.intensity = 0
+            }
+            break
+
+        case 'eaten':
+            if (!objs.wisp.step) {
+                objs.wisp.direction = [0, 0, 0]
+            }
+            if (objs.wisp.step == wispAnimLen) {
+                objs.wisp.currentStatus = 'arriving'
+                objs.wisp.step = stepToNextAnimation
+            }
+            break
     }
     objs.wisp.body.position.x -= objs.wisp.direction[0]
     objs.wisp.body.position.y -= objs.wisp.direction[1]
@@ -248,13 +327,14 @@ function render() {
     objs.wisp.raycastMesh.position.y = objs.wisp.body.position.y
     objs.wisp.raycastMesh.position.z = objs.wisp.body.position.z
     objs.wisp.step++
+    
 
     app.frame++;
     app.renderer.render(app.scene, app.camera)
 }
 
 
-function onDocumentMouseMove( event ) {
+function onDocumentMouseMove(event) {
     event.preventDefault();
     app.mousePos.x = ( event.clientX / window.innerWidth ) * 2 - 1
     app.mousePos.y = - ( event.clientY / window.innerHeight ) * 2 + 1
@@ -264,10 +344,24 @@ function onDocumentMouseMove( event ) {
         window.app.objects.wisp.raycastMesh, true
     );
     if ( intersections.length > 0 ) {
-        window.app.objects.wisp.body.intensity = 1.5
+        if (window.app.objects.wisp.hoverControlsLux) {
+            window.app.objects.wisp.body.intensity = 1.1
+        }
+        window.app.objects.wisp.hovered = true
         document.body.style.cursor = 'pointer';
     } else {
-        window.app.objects.wisp.body.intensity = 0.8
+        if (window.app.objects.wisp.hoverControlsLux) {
+            window.app.objects.wisp.body.intensity = 0.8
+        }
+        window.app.objects.wisp.hovered = false
         document.body.style.cursor = 'auto';
+    }
+}
+
+function onDocumentMouseClick(event) {
+    event.preventDefault();
+    if (window.app.objects.wisp.hovered) {
+        window.app.objects.wisp.currentStatus = 'goindToBeEaten'
+        window.app.objects.wisp.step = stepToNextAnimation
     }
 }
