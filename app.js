@@ -3,8 +3,9 @@ initWaves()
 initSkybox()
 initFrog()
 initIsland()
-// initKamish()
+initKamish()
 initWisp()
+initWall()
 render()
 
 
@@ -21,18 +22,22 @@ function initApp() {
 
     app.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(app.renderer.domElement)
+    app.renderer.shadowMapEnabled = true
+
 
 	
 	var light = new THREE.AmbientLight( 0x404040, 1 ); // soft white light
     window.app.scene.add( light );
     
-    var directionalLight1 = new THREE.DirectionalLight( 0x404040, 1 );
-    directionalLight1.position.set( 10, -10, 10 );
-    window.app.scene.add( directionalLight1 );
+    var spotLight = new THREE.SpotLight( 0x404040, 1.1 );
+    spotLight.position.set( -15, 10, 10 );
+    window.app.scene.add( spotLight );
 
-    var directionalLight1 = new THREE.DirectionalLight( 0x404040, 0.5 );
-    directionalLight1.position.set( 10, 10, 10 );
-    window.app.scene.add( directionalLight1 );
+    var directionalLight2 = new THREE.DirectionalLight( 0x404040, 0.5 );
+    directionalLight2.position.set( 10, 10, 10 );
+    directionalLight2.castShadow = true;
+    directionalLight2.shadowCameraVisible = true
+    window.app.scene.add( directionalLight2 );
 	
     app.orbitControl = new THREE.OrbitControls(
         app.camera, app.renderer.domElement
@@ -72,7 +77,7 @@ function initFrog() {
     });
 
     // tongue
-    var geometry = new THREE.ConeGeometry( 0.2, 0.1, 4 )
+    var geometry = new THREE.ConeGeometry( 0.2, 0.1, 6 )
     var material = new THREE.MeshPhongMaterial({
         color: 0xaa4444,
         shininess: 100,
@@ -80,8 +85,8 @@ function initFrog() {
     })
     var cone = new THREE.Mesh( geometry, material )
     cone.position.x = 3.8
-    cone.position.y = 3.8
-    cone.position.z = 1.8
+    cone.position.y = 3.6
+    cone.position.z = 1.7
     cone.rotation.z -= 3.8;
 
     console.log(cone)
@@ -113,7 +118,7 @@ function initWaves() {
     // Create WAVES
     var waves = {
         xVerticeNum: 50,
-        yVerticeNum: 17,
+        yVerticeNum: 20,
         verticeOffset: 2,
         vertices: [] 
     }
@@ -185,33 +190,63 @@ function initSkybox() {
 	window.app.scene.add( skybox );
 }
 
+function _rand_point(r1, r2, m1, s1, m2, s2) {
+    var x, y, xc1 = 0, xc2 = 0.5, yc1 = 0, yc2 = 0.5;
+    var complete = false;
+
+    while(!complete) {
+        x = Math.random();
+        y = Math.random();
+       
+        var top_circle_in = (
+            Math.pow((y - yc2), 2) + Math.pow((x - xc2), 2)
+        ) <= Math.pow(r2, 2);
+        var bottom_circle_out = (
+            Math.pow((y - yc1), 2) + Math.pow((x - xc1), 2)
+        ) >= Math.pow(r1, 2);
+        if(top_circle_in && bottom_circle_out) complete = true;
+    }
+    return [x*m1 + s1, y*m2 + s2];
+}
+
 function initKamish() {
     // load all kamishes
     var kamishes = []
     var loader = new THREE.ObjectLoader();
-    loader.load( 'kamish1.json', function ( object ) { kamishes.push(object) })
-    loader.load( 'kamish2.json', function ( object ) { kamishes.push(object) })
-    loader.load( 'kamish3.json', function ( object ) { 
+    loader.load( 'kamish1.json', function ( object ) { 
         kamishes.push(object) 
-        window.app.scene.add(getKamish())
+        loader.load( 'kamish2.json', function ( object ) { 
+            kamishes.push(object) 
+            loader.load( 'kamish3.json', function ( object ) { 
+                kamishes.push(object) 
+                for (var i = 0; i < 40; i++)
+                    window.app.scene.add(getKamish(1, 1, 20, -10, 20, -5))
+                for (var i = 0; i < 3; i++)
+                    window.app.scene.add(getKamish(1, 1, 2, -8, 2, 4))
+
+            })
+        })
+
     })
 
-    function getKamish() {
+
+    function getKamish(r1, r2, m1, s1, m2, s2) {
         var index = parseInt(Math.random() * 10) % 3
         var kamish = kamishes[index].clone()
-        kamish.scale.set(3, 4, 3)
-        // kamish.rotation.y += 3*3.14/2
+        kamish.scale.set(3, 3 + (Math.random()), 3)
         kamish.rotation.x += 3.14/2
         kamish.rotation.y += 3.14 * Math.random()
-        kamish.position.z = 0.6
+        kamish.position.z = 0.6 * Math.random()
+        var pos = _rand_point(r1, r2, m1, s1, m2, s2)
+        kamish.position.x = pos[0]
+        kamish.position.y = pos[1]
         return kamish
     }
-    
 }
 
 function initWisp() {
     var sphere = new THREE.SphereGeometry(0.1, 16, 8);
-    var raycastSphere = new THREE.SphereGeometry(1, 16, 8);
+    var raycastSphere = new THREE.SphereGeometry(0.5, 16, 8);
     light1 = new THREE.PointLight(0xccdfff, 0.8, 50, 2);
     light1.add( new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({
         color: 0xccdfff
@@ -230,9 +265,9 @@ function initWisp() {
         intersected: false,
         possibleStatuses: {
             arriving: { steps: 120 },
-            flyingAround: { steps: 60 },
-            goingToBeEaten: { steps: 10 },
-            beingEaten: { steps: 10 },
+            flyingAround: { steps: 45 },
+            goingToBeEaten: { steps: 5 },
+            beingEaten: { steps: 15 },
             eaten: { steps: 120 }
         },
         currentStatus: 'arriving',
@@ -241,6 +276,38 @@ function initWisp() {
     }
     window.app.scene.add(window.app.objects.wisp.raycastMesh)
 
+}
+
+function initWall() {
+    var loader = new THREE.ObjectLoader();
+    loader.load( 'wall.json', function ( object ) {
+        object.scale.set(1.5, 1.5, 1.5)
+        var object2 = object.clone()
+        var object3 = object.clone()
+
+        object.position.x = -10;
+        object.position.y = 6;
+        object.position.z = 0.1;
+        object.rotation.y -= 0.45;
+        object.rotation.x += 3.14/2;
+        window.app.scene.add(object)
+
+        object2.position.x = 13;
+        object2.position.y = 8;
+        object2.position.z = 0.1;
+        object2.rotation.y += 3*3.14/2 - 0.45;
+        object2.rotation.x += 3.14/2;
+        window.app.scene.add(object2)
+
+        object3.scale.set(1.5, 2, 1.5)
+        object3.position.z = -1.1;
+        object3.position.y = 28;
+        object3.rotation.y += 3*3.14/2;
+        object3.rotation.x += 3.14/2;
+        window.app.scene.add(object3)
+
+
+    })
 }
 
 function _rand(from, to) {
@@ -275,12 +342,12 @@ function render() {
             if (!objs.wisp.step) {
                 objs.wisp.hoverControlsLux = true
                 objs.wisp.body.intensity = 1
-                objs.wisp.body.position.x = -50
-                objs.wisp.body.position.y = -50
+                objs.wisp.body.position.x = -20
+                objs.wisp.body.position.y = -20
                 objs.wisp.body.position.z = 5
                 objs.wisp.direction = [
-                    (objs.wisp.body.position.x - 0) / wispAnimLen,
-                    (objs.wisp.body.position.y - 0) / wispAnimLen,
+                    (objs.wisp.body.position.x + 2) / wispAnimLen,
+                    (objs.wisp.body.position.y + 2) / wispAnimLen,
                     (objs.wisp.body.position.z - 2) / wispAnimLen,
                 ]
 
@@ -344,9 +411,9 @@ function render() {
 
 
     // tongue
-    
+    var tv = 3
     if (objs.wisp.currentStatus == 'goingToBeEaten') {
-        var tonguePos = objs.frogTongue.body.geometry.vertices[1]
+        var tonguePos = objs.frogTongue.body.geometry.vertices[tv]
         var globalTonguePos = objs.frogTongue.body.localToWorld(tonguePos)
 
         if (objs.wisp.step == stepToNextAnimation) {
@@ -379,18 +446,18 @@ function render() {
     }
     else if (objs.wisp.currentStatus == 'beingEaten') {
         // clone position from the wisp
-        objs.frogTongue.body.geometry.vertices[1].x = objs.wisp.body.position.x
-        objs.frogTongue.body.geometry.vertices[1].y = objs.wisp.body.position.y
-        objs.frogTongue.body.geometry.vertices[1].z = objs.wisp.body.position.z
+        objs.frogTongue.body.geometry.vertices[tv].x = objs.wisp.body.position.x
+        objs.frogTongue.body.geometry.vertices[tv].y = objs.wisp.body.position.y
+        objs.frogTongue.body.geometry.vertices[tv].z = objs.wisp.body.position.z
         objs.frogTongue.body.worldToLocal(
-            objs.frogTongue.body.geometry.vertices[1]
+            objs.frogTongue.body.geometry.vertices[tv]
         )
         objs.frogTongue.body.geometry.verticesNeedUpdate = true
     }
     else {
-        objs.frogTongue.body.geometry.vertices[1].x = 0
-        objs.frogTongue.body.geometry.vertices[1].y = 0
-        objs.frogTongue.body.geometry.vertices[1].z = 0
+        objs.frogTongue.body.geometry.vertices[tv].x = 0
+        objs.frogTongue.body.geometry.vertices[tv].y = 0
+        objs.frogTongue.body.geometry.vertices[tv].z = 0
         objs.frogTongue.body.geometry.verticesNeedUpdate = true
     }
 
