@@ -5,7 +5,7 @@ initFrog()
 initIsland()
 initKamish()
 initWisp()
-// initWall()
+initWall()
 render()
 
 
