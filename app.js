@@ -43,7 +43,7 @@ function initApp() {
     app.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(app.renderer.domElement)
     app.renderer.shadowMapEnabled = true
-    app.renderer.shadowMapType = THREE.PCFSoftShadowMap;
+    // app.renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
 
 	
@@ -52,7 +52,7 @@ function initApp() {
     
     var spotLight = new THREE.SpotLight( 0x404040, 0.8 );
     spotLight.position.set( -15, 10, 10 );
-    _cast_shadow(spotLight)
+    // _cast_shadow(spotLight)
     window.app.scene.add( spotLight );
 
     var directionalLight2 = new THREE.DirectionalLight( 0x404040, 0.5 );
@@ -249,10 +249,10 @@ function initKamish() {
             loader.load( 'kamish3_cr.json', function ( object ) { 
                 _receive_cast_shadow(object)
                 kamishes.push(object) 
-                for (var i = 0; i < 40; i++)
+                for (var i = 0; i < 30; i++)
                     window.app.scene.add(getKamish(1, 1, 20, -10, 20, -5))
                 for (var i = 0; i < 3; i++)
-                    window.app.scene.add(getKamish(1, 1, 2, -8, 2, 4))
+                    window.app.scene.add(getKamish(1, 1, 4, -8, 4, 4))
 
             })
         })
