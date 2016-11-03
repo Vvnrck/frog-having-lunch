@@ -8,6 +8,25 @@ initWisp()
 initWall()
 render()
 
+function _receive_cast_shadow(object) {
+    _receive_shadow(object)
+    _cast_shadow(object)
+}
+
+function _receive_shadow(object) {
+    if (object.receiveShadow === undefined) {
+        console.log(["can't receive shadow", object])
+    }
+    object.receiveShadow = true
+}
+
+function _cast_shadow(object) {
+    if (object.castShadow === undefined) {
+        console.log(["can't cast shadow", object])
+    }
+    object.castShadow = true
+}
+
 
 function initApp() {
     window.app = window.app || {
@@ -24,6 +43,7 @@ function initApp() {
     app.renderer.setSize(window.innerWidth, window.innerHeight)
     document.body.appendChild(app.renderer.domElement)
     app.renderer.shadowMapEnabled = true
+    app.renderer.shadowMapType = THREE.PCFSoftShadowMap;
 
 
 	
@@ -32,12 +52,13 @@ function initApp() {
     
     var spotLight = new THREE.SpotLight( 0x404040, 0.8 );
     spotLight.position.set( -15, 10, 10 );
+    _cast_shadow(spotLight)
     window.app.scene.add( spotLight );
 
     var directionalLight2 = new THREE.DirectionalLight( 0x404040, 0.5 );
     directionalLight2.position.set( 10, 10, 10 );
-    directionalLight2.castShadow = true;
-    directionalLight2.shadowCameraVisible = true
+    directionalLight2.castShadow = false;
+    directionalLight2.shadowCameraVisible = false
     window.app.scene.add( directionalLight2 );
 	
     if (!app.fixedCam) {
@@ -68,12 +89,13 @@ function initFrog() {
 	window.app = window.app || initApp()
 	
 	var loader = new THREE.ObjectLoader();
-	loader.load( 'telefrog.json', function ( object ) {
+	loader.load( 'lambert_telefrog.json', function ( object ) {
 		object.position.x = 4;
 		object.position.y = 4;
 		object.position.z = 1.5;
         object.rotation.y -= 3.8;
         object.rotation.x += 3.14/2;
+        _cast_shadow(object)
         window.app.objects.frog = object
         window.app.scene.add(object)
     });
@@ -104,6 +126,7 @@ function initIsland() {
     window.app = window.app || initApp()
     var loader = new THREE.ObjectLoader();
     loader.load( 'island.json', function ( object ) {
+        _receive_shadow(object)
         object.position.x = 4;
         object.position.y = 4;
         object.position.z = 0.5;
@@ -166,6 +189,7 @@ function initWaves() {
                     geometry: rectShape,
                     polygon: polygon
                 }
+                _receive_shadow(polygon)
                 app.scene.add(polygon)
             }
         }
@@ -216,11 +240,14 @@ function initKamish() {
     // load all kamishes
     var kamishes = []
     var loader = new THREE.ObjectLoader();
-    loader.load( 'kamish1.json', function ( object ) { 
+    loader.load( 'kamish1_cr.json', function ( object ) { 
+        _receive_cast_shadow(object)
         kamishes.push(object) 
-        loader.load( 'kamish2.json', function ( object ) { 
+        loader.load( 'kamish2_cr.json', function ( object ) { 
+            _receive_cast_shadow(object)
             kamishes.push(object) 
-            loader.load( 'kamish3.json', function ( object ) { 
+            loader.load( 'kamish3_cr.json', function ( object ) { 
+                _receive_cast_shadow(object)
                 kamishes.push(object) 
                 for (var i = 0; i < 40; i++)
                     window.app.scene.add(getKamish(1, 1, 20, -10, 20, -5))
@@ -254,6 +281,7 @@ function initWisp() {
     light1.add( new THREE.Mesh(sphere, new THREE.MeshBasicMaterial({
         color: 0xccdfff
     })))
+    _cast_shadow(light1)
     window.app.scene.add(light1)
 
     window.app.objects.wisp = {
@@ -284,6 +312,7 @@ function initWisp() {
 function initWall() {
     var loader = new THREE.ObjectLoader();
     loader.load( 'wall.json', function ( object ) {
+        _receive_shadow(object)
         object.scale.set(1.5, 1.5, 1.5)
         var object2 = object.clone()
         var object3 = object.clone()
@@ -382,7 +411,7 @@ function render() {
             if (!objs.wisp.step) {
                 objs.wisp.direction = [0, 0, 0]
                 objs.wisp.hoverControlsLux = false
-                objs.wisp.body.intensity = 2
+                objs.wisp.body.intensity = 2.5
             }
             if (objs.wisp.step == wispAnimLen) {
                 objs.wisp.currentStatus = 'beingEaten'
@@ -507,7 +536,7 @@ function onDocumentMouseMove(event) {
         document.body.style.cursor = 'pointer';
     } else {
         if (window.app.objects.wisp.hoverControlsLux) {
-            window.app.objects.wisp.body.intensity = 1
+            window.app.objects.wisp.body.intensity = 0.8
         }
         window.app.objects.wisp.hovered = false
         document.body.style.cursor = 'auto';
